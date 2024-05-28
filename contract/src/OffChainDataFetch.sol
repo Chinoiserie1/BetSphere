@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: All Rights Reserved
 pragma solidity ^0.8.25;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 import {IOffChainDataFetch} from "./Interface/IOffChainDataFetch.sol";
 import {IResponseRequest} from "./Interface/IResponseRequest.sol";
 
@@ -8,14 +10,30 @@ import {IResponseRequest} from "./Interface/IResponseRequest.sol";
  * @title OffChainDataFetch
  * @dev Contract to fetch data off-chain
  */
-abstract contract OffChainDataFetch is IOffChainDataFetch {
+abstract contract OffChainDataFetch is IOffChainDataFetch, Ownable {
 
   mapping(address => bool) private _authorized;
 
   event Request(uint256 id, address target, uint256 timestamp, string url);
   event Response(uint256 id, address target, uint8 direction);
 
-  constructor() {}
+  constructor(address initialOwner) Ownable(initialOwner) {}
+
+  /**
+   * @dev Authorize an address to response data
+   * @param target The address to authorize
+   */
+  function authorize(address target) public onlyOwner {
+    _authorized[target] = true;
+  }
+
+  /**
+   * @dev Unauthorize an address to response data
+   * @param target The address to unauthorize
+   */
+  function unauthorize(address target) public onlyOwner {
+    _authorized[target] = false;
+  }
 
   /**
    * @dev Request data from off-chain
