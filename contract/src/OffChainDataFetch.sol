@@ -47,6 +47,12 @@ abstract contract OffChainDataFetch is IOffChainDataFetch, Ownable {
     return id;
   }
 
+  /**
+   * @dev Response data to a request
+   * @param id The ID of the request
+   * @param target The address of the requester
+   * @param direction The direction of the response
+   */
   function response(uint256 id, address target, uint8 direction) public {
     if (!_authorized[msg.sender]) revert("OffChainDataFetch: unauthorized");
     IResponseRequest(target).fulfillRequest(id, direction);
