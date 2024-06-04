@@ -10,14 +10,31 @@ import {IResponseRequest} from "./Interface/IResponseRequest.sol";
  * @title OffChainDataFetch
  * @dev Contract to fetch data off-chain
  */
-abstract contract OffChainDataFetch is IOffChainDataFetch, Ownable {
+contract OffChainDataFetch is Ownable {
 
   mapping(address => bool) private _authorized;
+  mapping(address => bool) private _authorizedRequester;
 
-  event Request(uint256 id, address target, uint256 timestamp, string url);
+  event Request(uint256 indexed id, address indexed target, uint256 timestamp, string url, string key, string condition);
   event Response(uint256 id, address target, uint8 direction);
 
   constructor(address initialOwner) Ownable(initialOwner) {}
+
+  /**
+   * @dev Authorize an address to request data
+   * @param target The address to authorize
+   */
+  function authorizedRequester(address target) public onlyOwner {
+    _authorizedRequester[target] = true;
+  }
+
+  /**
+   * @dev Unauthorize an address to request data
+   * @param target The address to unauthorize
+   */
+  function unauthorizedRequester(address target) public onlyOwner {
+    _authorizedRequester[target] = false;
+  }
 
   /**
    * @dev Authorize an address to response data
@@ -42,8 +59,9 @@ abstract contract OffChainDataFetch is IOffChainDataFetch, Ownable {
    * @return The ID of the request
    */
   function request(uint256 timestamp, string memory url, string memory key, string memory condition) public returns(uint256) {
+    if (!_authorizedRequester[msg.sender]) revert("OffChainDataFetch: unauthorized requester");
     uint256 id = uint256(keccak256(abi.encodePacked(timestamp, url, key, condition))); // Generate a unique ID
-    emit Request(id, msg.sender, timestamp, url);
+    emit Request(id, msg.sender, timestamp, url, key, condition);
     return id;
   }
 
