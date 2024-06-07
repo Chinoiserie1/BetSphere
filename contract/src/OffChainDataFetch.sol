@@ -20,7 +20,7 @@ contract OffChainDataFetch is Ownable {
     address indexed target,
     string url,
     string params,
-    string key,
+    string[] keys,
     string condition
   );
   event Response(uint256 id, address target, uint8 direction);
@@ -60,21 +60,24 @@ contract OffChainDataFetch is Ownable {
   }
 
   /**
-   * @dev Request data from off-chain
+   * @dev Request data from an off-chain service
    * @param timestamp The timestamp of the request
    * @param url The URL of the data to fetch
+   * @param params The parameters of the request
+   * @param keys Keys of the data to fetch
+   * @param condition The condition of the request
    * @return The ID of the request
    */
   function request(
     uint256 timestamp,
     string memory url,
     string memory params,
-    string memory key,
+    string[] memory keys,
     string memory condition
   ) public returns(uint256) {
     if (!_authorizedRequester[msg.sender]) revert("OffChainDataFetch: unauthorized requester");
-    uint256 id = uint256(keccak256(abi.encodePacked(timestamp, url, key, condition))); // Generate a unique ID
-    emit Request(id, msg.sender, url, params, key, condition); // emit event Request for the off-chain service
+    uint256 id = uint256(keccak256(abi.encode(timestamp, url, keys, condition))); // Generate a unique ID
+    emit Request(id, msg.sender, url, params, keys, condition); // emit event Request for the off-chain service
     return id;
   }
 
