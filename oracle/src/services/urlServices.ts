@@ -54,3 +54,20 @@ export const isUrlWhitelisted = async (url: string) => {
     throw err;
   }
 };
+
+export const isUrlDomainWhitelisted = async (url: string) => {
+  const query = `
+    SELECT url FROM whitelistedUrl;
+  `;
+
+  try {
+    const res = await pool.query(query);
+    const whitelistedUrls = res.rows.map((row) => row.url);
+    return whitelistedUrls.some((whitelistedUrl) =>
+      url.startsWith(whitelistedUrl)
+    );
+  } catch (err) {
+    console.error('Error checking URL in "whitelistedUrl":', err);
+    throw err;
+  }
+};
