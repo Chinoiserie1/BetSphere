@@ -3,7 +3,10 @@ import dotenv from "dotenv";
 import ABI from "../abi/OffChainDataFetch.json";
 
 import evaluateExpression from "../utils/evaluateExpression";
-import getValueFromKeyPath from "../utils/getValueFromKeyPath";
+
+import getValueFromKeyPath from "../utils/keyManipulation.ts/getValueFromKeyPath";
+import convertToKeysParams from "../utils/keyManipulation.ts/convertToKeysParams";
+import getKeysValues from "../utils/keyManipulation.ts/getKeysValues";
 
 dotenv.config();
 
@@ -12,8 +15,10 @@ const contractAddress: string = process.env.CONTRACT_ADDRESS!;
 
 const oracleContract = new ethers.Contract(contractAddress, ABI.abi, provider);
 
-const listenToEvents = () => {
+const listenToEvents = async () => {
   console.log("Listening to events...");
+
+  // start test
   const res = {
     team1: { name: "team1" },
     team2: { name: "team2" },
@@ -40,27 +45,31 @@ const listenToEvents = () => {
   };
   const exempleKeys = ["response[0].goals[2].away", "team1.name", "winner"];
 
-  const simulatedFetchData = (res: any, keyPaths: string[]) => {
-    return keyPaths.map((keyPath) => getValueFromKeyPath(res, keyPath));
-  };
+  const keysParams = convertToKeysParams(getKeysValues(res, exempleKeys));
 
-  console.log(simulatedFetchData(res, exempleKeys));
+  console.log("SF", getKeysValues(res, exempleKeys));
 
-  console.log(getValueFromKeyPath(res, exempleKeys[0]));
+  console.log("GVF", getValueFromKeyPath(res, exempleKeys[0]));
+
+  console.log("KP", keysParams);
 
   const result = evaluateExpression(
-    { key1: "alice", key2: "100" },
-    "key1 == 'alice' && key2 > 60"
+    keysParams,
+    "key1>1&&key2=='team1'&&key3=='team2'"
   );
-  console.log(result);
+  console.log("res", result);
+  // end test
+
+  // Listen to Request events
   oracleContract.on(
     "Request",
-    (id, target, timestamp, url, params, key, condition, event) => {
+    (id, target, url, params, keys, condition, event) => {
       console.log(
-        `Event Request triggered with args: ${id}, ${target}, ${timestamp}, ${url}, ${key}, ${condition}`
+        `Event Request triggered with args: ${id}, ${target}, ${url}, ${params}, ${keys}, ${condition}`
       );
 
-      // Run your job here
+      // Run job with the event arguments
+      runJob(id, target, url, params, keys, condition);
     }
   );
 };
@@ -68,11 +77,37 @@ const listenToEvents = () => {
 const runJob = async (
   id: string,
   target: string,
-  timestamp: number,
   url: string,
-  params: string,
-  key: string,
+  params: string[],
+  keys: string[],
   condition: string
-) => {};
+) => {
+  // check if the URL is whitelisted
+  const isWhitelisted = await fetch(
+    "http://localhost:3000/whitelisted-url/is-whitelisted",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url }),
+    }
+  )
+    .then((res) => res.json())
+    .then((res) => res.whitelisted);
+  console.log("Is the URL whitelisted: ", isWhitelisted);
+
+  // Fetch data from the given URL
+  const res = await fetch(url);
+  const data = await res.json();
+  console.log("Data fetched from the URL:", data);
+
+  const keysParams = convertToKeysParams(getKeysValues(data, keys));
+
+  const result = evaluateExpression(keysParams, condition);
+
+  console.log("Result of the condition:", result);
+  // perform blockchain call
+};
 
 export default listenToEvents;
