@@ -1,44 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { WhitelistedUrl } from './whitelisted-url.entity';
-import * as url from 'url';
+import { PrismaService } from '../prisma/prisma.service';
+import { WhitelistedUrl } from '@prisma/client';
 
 @Injectable()
 export class WhitelistedUrlService {
-  constructor(
-    @InjectRepository(WhitelistedUrl)
-    private readonly whitelistedUrlRepository: Repository<WhitelistedUrl>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(
+  async create(
     url: string,
     headers: Record<string, string>,
   ): Promise<WhitelistedUrl> {
-    const newWhitelistedUrl = this.whitelistedUrlRepository.create({
-      url,
-      headers,
+    return this.prisma.whitelistedUrl.create({
+      data: { url, headers },
     });
-    return this.whitelistedUrlRepository.save(newWhitelistedUrl);
   }
 
-  findAll(): Promise<WhitelistedUrl[]> {
-    return this.whitelistedUrlRepository.find();
+  async findAll(): Promise<WhitelistedUrl[]> {
+    return this.prisma.whitelistedUrl.findMany();
   }
 
-  findOne(id: number): Promise<WhitelistedUrl> {
-    return this.whitelistedUrlRepository.findOne({ where: { id } });
+  async findOne(id: number): Promise<WhitelistedUrl> {
+    return this.prisma.whitelistedUrl.findUnique({ where: { id } });
   }
 
   async remove(id: number): Promise<void> {
-    await this.whitelistedUrlRepository.delete(id);
+    await this.prisma.whitelistedUrl.delete({ where: { id } });
   }
 
   async isWhitelisted(checkUrl: string): Promise<boolean> {
-    const { hostname } = url.parse(checkUrl);
-    const whitelisted = await this.whitelistedUrlRepository.find();
-    return whitelisted.some((entry) => {
-      const whitelistedHostname = url.parse(entry.url).hostname;
+    const whitelistedUrls = await this.prisma.whitelistedUrl.findMany();
+    return whitelistedUrls.some((entry) => {
+      const { hostname } = new URL(checkUrl);
+      const whitelistedHostname = new URL(entry.url).hostname;
       return hostname === whitelistedHostname;
     });
   }

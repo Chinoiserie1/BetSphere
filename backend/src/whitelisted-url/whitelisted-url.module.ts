@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { WhitelistedUrlService } from './whitelisted-url.service';
 import { WhitelistedUrlController } from './whitelisted-url.controller';
-import { WhitelistedUrl } from './whitelisted-url.entity';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([WhitelistedUrl])],
+  imports: [PrismaModule],
   providers: [WhitelistedUrlService],
   controllers: [WhitelistedUrlController],
-  exports: [WhitelistedUrlService],
 })
 export class WhitelistedUrlModule {}

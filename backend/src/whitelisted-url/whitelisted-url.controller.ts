@@ -1,18 +1,25 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { WhitelistedUrlService } from './whitelisted-url.service';
-import { WhitelistedUrl } from './whitelisted-url.entity';
+import { WhitelistedUrl } from '@prisma/client';
+import { CreateWhitelistedUrlDto } from './dto/create-whitelisted-url.dto';
 
 @Controller('whitelisted-url')
 export class WhitelistedUrlController {
   constructor(private readonly whitelistedUrlService: WhitelistedUrlService) {}
 
   @Post()
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   create(
-    @Body()
-    createWhitelistedUrlDto: {
-      url: string;
-      headers: Record<string, string>;
-    },
+    @Body() createWhitelistedUrlDto: CreateWhitelistedUrlDto,
   ): Promise<WhitelistedUrl> {
     return this.whitelistedUrlService.create(
       createWhitelistedUrlDto.url,
