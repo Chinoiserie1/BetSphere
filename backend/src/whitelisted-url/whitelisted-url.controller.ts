@@ -7,10 +7,15 @@ import {
   Delete,
   UsePipes,
   ValidationPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { WhitelistedUrlService } from './whitelisted-url.service';
 import { WhitelistedUrl } from '@prisma/client';
 import { CreateWhitelistedUrlDto } from './dto/create-whitelisted-url.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { Role } from '../auth/role.enum';
 
 @Controller('whitelisted-url')
 export class WhitelistedUrlController {
@@ -18,6 +23,8 @@ export class WhitelistedUrlController {
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.Admin)
   create(
     @Body() createWhitelistedUrlDto: CreateWhitelistedUrlDto,
   ): Promise<WhitelistedUrl> {
@@ -38,6 +45,8 @@ export class WhitelistedUrlController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.Admin)
   remove(@Param('id') id: number): Promise<void> {
     return this.whitelistedUrlService.remove(id);
   }
