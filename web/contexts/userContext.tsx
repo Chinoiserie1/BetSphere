@@ -13,6 +13,7 @@ import {
 } from "@web3modal/ethers/react";
 import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { BrowserProvider } from "ethers";
+import { jwtDecode } from "jwt-decode";
 
 import fetchUser from "@/utils/fetchUser";
 import createUser from "@/utils/createUser";
@@ -37,6 +38,16 @@ type GetUserJwtParams = {
   signature: string;
 };
 
+type JwtPayload = {
+  exp: number;
+};
+
+const isJwtExpired = (token: string | null) => {
+  if (!token) return true;
+  const decoded: JwtPayload = jwtDecode(token);
+  return decoded.exp * 1000 < new Date().getTime();
+};
+
 export const UserContext = createContext<UserContextProps>({
   user: null,
   setUser: () => {},
@@ -56,6 +67,8 @@ export const UserProvider = ({ children }: React.PropsWithChildren) => {
       setJwt(localStorage.getItem("jwt"));
     }
   }, []);
+
+  console.log(isJwtExpired(jwt));
 
   const { data } = useQuery({
     queryKey: ["user"],
@@ -109,7 +122,7 @@ export const UserProvider = ({ children }: React.PropsWithChildren) => {
   }, [data, address, createUserMutation, user]);
 
   const signIn = useCallback(async () => {
-    if (!address || jwt || walletProvider === undefined) return;
+    if (!address || walletProvider === undefined) return;
     if (signInCalledRef.current) return;
     signInCalledRef.current = true;
 
@@ -125,10 +138,10 @@ export const UserProvider = ({ children }: React.PropsWithChildren) => {
     } catch (error) {
       console.error("Error during sign in:", error);
     }
-  }, [address, jwt, walletProvider, getJwtMutation]);
+  }, [address, walletProvider, getJwtMutation]);
 
   useEffect(() => {
-    if (!jwt) {
+    if (!jwt || isJwtExpired(jwt)) {
       signIn();
     }
   }, [signIn, jwt]);
