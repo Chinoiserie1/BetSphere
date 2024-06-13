@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { Web3Modal } from "@/contexts/web3modal";
+import { UserProvider } from "@/contexts/userContext";
+import ReactQueryProvider from "@/contexts/reactQuery";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Web3Modal>{children}</Web3Modal>
+        <ReactQueryProvider>
+          <Web3Modal>
+            <UserProvider>{children}</UserProvider>
+          </Web3Modal>
+        </ReactQueryProvider>
       </body>
     </html>
   );
