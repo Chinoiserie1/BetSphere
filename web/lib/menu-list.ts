@@ -4,10 +4,13 @@ import {
   Settings,
   Bookmark,
   SquarePen,
+  Dribbble,
+  Activity,
+  CandlestickChart,
   LayoutGrid,
 } from "lucide-react";
-import SportsSoccerIcon from "@mui/icons-material/SportsSoccer";
-import SportsBasketballIcon from "@mui/icons-material/SportsBasketball";
+// import SportsSoccerIcon from "@mui/icons-material/SportsSoccer";<CandlestickChart />
+// import SportsBasketballIcon from "@mui/icons-material/SportsBasketball";
 
 type Submenu = {
   href: string;
@@ -47,34 +50,27 @@ export function getMenuList(pathname: string): Group[] {
       menus: [
         {
           href: "",
-          label: "Football",
-          active: pathname.includes("/football"),
-          icon: SportsSoccerIcon,
+          label: "Sports",
+          active: pathname.includes("/"),
+          icon: Activity,
           submenus: [
             {
               href: "/football",
-              label: "All Fixtures",
-              active: pathname === "/posts",
+              label: "Football",
+              active: pathname === "/football",
             },
             {
-              href: "/football",
-              label: "League 1",
-              active: pathname === "/posts/new",
+              href: "/basketball",
+              label: "Basketball",
+              active: pathname === "/basketball",
             },
           ],
         },
         {
-          href: "/basketball",
-          label: "Basketball",
-          active: pathname.includes("/basketball"),
-          icon: SportsBasketballIcon,
-          submenus: [],
-        },
-        {
-          href: "/tags",
-          label: "Tags",
-          active: pathname.includes("/tags"),
-          icon: Tag,
+          href: "/finance",
+          label: "Finance",
+          active: pathname.includes("/finance"),
+          icon: CandlestickChart,
           submenus: [],
         },
       ],
