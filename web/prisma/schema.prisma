@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Url {
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(255)
+  url         String     @unique @db.VarChar(255)
+  headers     Json
+  created     DateTime   @default(now())
+  updated     DateTime   @updatedAt
+  betInfo     BetInfo[]
+  Selection   Selection? @relation(fields: [selectionId], references: [id])
+  selectionId Int?
+}
+
+model User {
+  id      String   @id @default(cuid())
+  address String   @unique
+  points  String   @default("0")
+  role    String   @default("user")
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+  bets    Bet[]
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  SubCategories SubCategory[]
+}
+
+model SubCategory {
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  categoryId Int
+  category   Category    @relation(fields: [categoryId], references: [id])
+  Selections Selection[]
+}
+
+model Selection {
+  id            Int         @id @default(autoincrement())
+  name          String      @unique
+  slug          String      @unique
+  subCategoryId Int
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  bets          BetInfo[]
+  urls          Url[]
+}
+
+model BetInfo {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  description String
+  status      String
+  result      String
+  urlId       Int
+  url         Url       @relation(fields: [urlId], references: [id])
+  selectionId Int
+  selection   Selection @relation(fields: [selectionId], references: [id])
+  bets        Bet[]
+}
+
+model Bet {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  BetInfoId Int
+  amount    Float
+  user      User     @relation(fields: [userId], references: [id])
+  BetInfo   BetInfo  @relation(fields: [BetInfoId], references: [id])
+  created   DateTime @default(now())
+  updated   DateTime @updatedAt
+}
+
+model FootballFixture {
+  id               Int            @id
+  date             DateTime
+  timestamp        Int
+  status           Json
+  league           FootballLeague @relation(fields: [footballLeagueId], references: [id])
+  homeTeam         FootballTeam   @relation("homeTeam", fields: [homeTeamId], references: [id])
+  homeTeamId       Int
+  awayTeam         FootballTeam   @relation("awayTeam", fields: [awayTeamId], references: [id])
+  awayTeamId       Int
+  goalsHome        Int?
+  goalsAway        Int?
+  score            FootballScore  @relation(fields: [footballScoreId], references: [id])
+  footballLeagueId Int
+  footballScoreId  Int
+}
+
+model FootballLeague {
+  id              Int               @id
+  logo            String
+  flag            String?
+  country         String
+  name            String
+  round           String?
+  footballFixture FootballFixture[]
+}
+
+model FootballTeam {
+  id     Int               @id
+  name   String
+  logo   String
+  winner Boolean?
+  home   FootballFixture[] @relation("homeTeam")
+  away   FootballFixture[] @relation("awayTeam")
+}
+
+model FootballScore {
+  id              Int               @id @default(autoincrement())
+  halftime        Json
+  fulltime        Json
+  extratime       Json
+  penalty         Json
+  footballFixture FootballFixture[]
+}
