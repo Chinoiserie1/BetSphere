@@ -1,10 +1,35 @@
-import Header from "../components/header";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+
+import Header from "../components/header/header";
+import SideBar from "@/components/side-bar/side-bar";
+import AdminPanelLayout from "@/components/admin-panel/admin-panel-layout";
+import { ContentLayout } from "@/components/admin-panel/content-layout";
 
 export default function Home() {
   return (
-    <>
-      <Header />
-      <main className="flex min-h-screen flex-col items-center justify-between p-24"></main>
-    </>
+    <div className="w-screen h-screen overflow-hidden">
+      <AdminPanelLayout>
+        <ContentLayout title="Home">
+          {/* <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href="/">Home</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>football</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb> */}
+          Content
+        </ContentLayout>
+      </AdminPanelLayout>
+    </div>
   );
 }

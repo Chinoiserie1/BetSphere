@@ -5,6 +5,7 @@ import "./globals.css";
 import { Web3Modal } from "@/contexts/web3modal";
 import { UserProvider } from "@/contexts/userContext";
 import ReactQueryProvider from "@/contexts/reactQuery";
+import { ThemeProvider } from "@/contexts/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,11 +22,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ReactQueryProvider>
-          <Web3Modal>
-            <UserProvider>{children}</UserProvider>
-          </Web3Modal>
-        </ReactQueryProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ReactQueryProvider>
+            <Web3Modal>
+              {/* <UserProvider> */}
+              {children}
+              {/* </UserProvider> */}
+            </Web3Modal>
+          </ReactQueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
