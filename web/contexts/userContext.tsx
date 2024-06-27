@@ -28,7 +28,6 @@ type User = {
 
 type UserContextProps = {
   user: User | null;
-  setUser: (user: User | null) => void;
   jwt: string | null;
 };
 
@@ -50,7 +49,6 @@ const isJwtExpired = (token: string | null) => {
 
 export const UserContext = createContext<UserContextProps>({
   user: null,
-  setUser: () => {},
   jwt: null,
 });
 
@@ -67,8 +65,6 @@ export const UserProvider = ({ children }: React.PropsWithChildren) => {
       setJwt(localStorage.getItem("jwt"));
     }
   }, []);
-
-  console.log(isJwtExpired(jwt));
 
   const { data } = useQuery({
     queryKey: ["user"],
@@ -130,7 +126,7 @@ export const UserProvider = ({ children }: React.PropsWithChildren) => {
       const provider = new BrowserProvider(walletProvider);
       const signer = await provider.getSigner();
       const timestamp = new Date().getTime();
-      const message = `BetSphere: sign to access functionality ${timestamp}`;
+      const message = `BetSphere: sign to access functionalities ${timestamp}`;
       const signature = await signer?.signMessage(message);
       if (signature) {
         getJwtMutation.mutate({ address, message, signature });
@@ -146,7 +142,7 @@ export const UserProvider = ({ children }: React.PropsWithChildren) => {
     }
   }, [signIn, jwt]);
 
-  const value = { user, jwt, setUser };
+  const value = { user, jwt };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
