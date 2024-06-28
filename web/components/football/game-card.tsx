@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import ShineBorderHover from "@/components/magicui/shine-border-hover";
 
 const FootballFixtureWithRelations =
   Prisma.validator<Prisma.FootballFixtureDefaultArgs>()({
@@ -67,52 +69,61 @@ export default function GameCard({ fixture }: { fixture: FootballFixture }) {
   };
 
   return (
-    <Card key={fixture.id} className="p-4 rounded-2xl">
-      <CardHeader className={cn("p-2")}>
-        <div className="flex flex-col">
-          <div className="flex flex-row">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={fixture.league.logo} alt="Logo" />
-            </Avatar>
-            {fixture.league.flag && (
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={fixture.league.flag} alt="Logo" />
-              </Avatar>
-            )}
-            <span className="ml-2 text-sm font-semibold">
-              {fixture.league.country} - {fixture.league.name}
-            </span>
-          </div>
-          <span className="text-xs pt-2">status: {status.long}</span>
-        </div>
-      </CardHeader>
-      <CardContent className={cn("p-6")}>
-        <div className="text-center p-2">{renderDate()}</div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <div className="text-lg font-semibold text-center">
-              {fixture.homeTeam.name}
+    <Link href={`/football/${fixture.id}`}>
+      {/* <Card key={fixture.id} className="p-4 rounded-2xl"> */}
+      <Card className="rounded-2xl">
+        <ShineBorderHover
+          borderRadius={14}
+          className="w-full"
+          color={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+        >
+          <CardHeader className={cn("p-2")}>
+            <div className="flex flex-col">
+              <div className="flex flex-row">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={fixture.league.logo} alt="Logo" />
+                </Avatar>
+                {fixture.league.flag && (
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={fixture.league.flag} alt="Logo" />
+                  </Avatar>
+                )}
+                <span className="ml-2 text-sm font-semibold">
+                  {fixture.league.country} - {fixture.league.name}
+                </span>
+              </div>
+              <span className="text-xs pt-2">status: {status.long}</span>
             </div>
-          </div>
-          <div>
-            <div className="text-lg font-semibold text-center">
-              {fixture.awayTeam.name}
+          </CardHeader>
+          <CardContent className={cn("p-6")}>
+            <div className="text-center p-2">{renderDate()}</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-lg font-semibold text-center">
+                  {fixture.homeTeam.name}
+                </div>
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-center">
+                  {fixture.awayTeam.name}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <div className="text-lg font-semibold text-center">
-              {fixture.goalsHome}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-lg font-semibold text-center">
+                  {fixture.goalsHome}
+                </div>
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-center">
+                  {fixture.goalsAway}
+                </div>
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="text-lg font-semibold text-center">
-              {fixture.goalsAway}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </ShineBorderHover>
+      </Card>
+    </Link>
   );
 }
