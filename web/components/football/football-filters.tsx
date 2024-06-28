@@ -28,17 +28,31 @@ interface FilterOption {
 }
 
 const filterOptions: FilterOption[] = [
-  { id: "3", label: "Europa League", queryParam: "europa-league" },
   {
     id: "1",
-    label: "Champions League",
-    queryParam: "champions-league",
+    label: "World Cup",
+    queryParam: "world-cup",
   },
   {
-    id: "4",
-    label: "Euro Championship",
-    queryParam: "Euro-Championship",
+    id: "2",
+    label: "UEFA Champions League",
+    queryParam: "uefa-champions-league",
   },
+  { id: "3", label: "UEFA Europa League", queryParam: "uefa-europa-league" },
+  { id: "4", label: "Euro Championship", queryParam: "euro-championship" },
+  {
+    id: "6",
+    label: "Africa Cup of Nations",
+    queryParam: "africa-cup-of-nations",
+  },
+  {
+    id: "9",
+    label: "Copa America",
+    queryParam: "copa-america",
+  },
+  { id: "39", label: "Premier League", queryParam: "premier-league" },
+  { id: "61", label: "Ligue 1", queryParam: "ligue-1" },
+  { id: "71", label: "Serie A", queryParam: "serie-a" },
 ];
 
 type FiltersState = {
@@ -82,6 +96,7 @@ export default function FootballFilters() {
     });
     console.log(query.toString());
     router.push(`/football/?${query.toString()}`);
+    router.refresh();
   };
 
   return (
