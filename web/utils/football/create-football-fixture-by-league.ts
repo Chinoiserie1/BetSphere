@@ -1,6 +1,6 @@
 // add fixtures to the database
 import "server-only";
-import { FootballFixtures } from "../prisma/football-types";
+import { FootballFixtures } from "../../prisma/football-types";
 import prisma from "@/lib/db";
 
 export default async function createFootballFixtureByLeague(
