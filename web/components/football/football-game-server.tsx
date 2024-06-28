@@ -4,6 +4,7 @@ import FootballGameClient from "./football-game-client";
 import FootballGameCard from "./football-game-card";
 import GameCard from "./game-card";
 import GameClient from "./game-client";
+import { addFixtureId } from "@/utils/football/add-fixture-id";
 
 type FootballGameServerProps = {
   id: number;
@@ -18,7 +19,7 @@ type FixtureStatus = {
 export default async function FootballGameServer({
   id,
 }: FootballGameServerProps) {
-  const fixture = await prisma.footballFixture.findUnique({
+  let fixture = await prisma.footballFixture.findUnique({
     where: { id },
     include: {
       league: true,
@@ -32,8 +33,27 @@ export default async function FootballGameServer({
     return <div>Fixture not found</div>;
   }
 
-  // const current = new Date().getTime() / 1000;
-  // const status = fixture.status as FixtureStatus;
+  const current = new Date().getTime() / 1000;
+  const status = fixture.status as FixtureStatus;
+
+  if (
+    fixture.timestamp <= current &&
+    (status.short === "NS" ||
+      status.short === "1H" ||
+      status.short === "HT" ||
+      status.short === "2H" ||
+      status.short === "ET" ||
+      status.short === "BT" ||
+      status.short === "INT" ||
+      status.short === "P")
+  ) {
+    console.log("Fixture started, updating...");
+    fixture = await addFixtureId(fixture);
+  }
+
+  if (!fixture) {
+    return <div>Fixture not found</div>;
+  }
 
   // if (
   //   fixture.timestamp > current ||
@@ -47,7 +67,8 @@ export default async function FootballGameServer({
   return (
     <Suspense fallback={<div>Loading...</div>}>
       {/* <FootballGameClient id={id} /> */}
-      <GameClient fixtureProps={fixture} />
+      {/* <GameClient fixtureProps={fixture} /> */}
+      <GameCard fixture={fixture} />
     </Suspense>
   );
 }
