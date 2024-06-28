@@ -1,3 +1,5 @@
+// fetch and add fixtures to the database
+import "server-only";
 import { FootballGames } from "@/prisma/football-types";
 import prisma from "@/lib/db";
 
