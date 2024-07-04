@@ -3,6 +3,8 @@ pragma solidity ^0.8.25;
 
 import {IOffChainDataFetch} from "./Interface/IOffChainDataFetch.sol";
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 enum BetDirection {
   For,
   Against
@@ -15,6 +17,7 @@ struct UserBet {
 }
 
 struct BetInfo {
+  uint8 status;
   uint8 result;
   uint256 id;
   uint256 timestamp;
@@ -26,14 +29,22 @@ struct BetInfo {
   string[] params;
 }
 
+enum BetStatus {
+  NotInitiated,
+  Initialized,
+  Ended
+}
+
 /**
  * @title BetSphere
  * @dev Contract to place bets
  */
-contract BetSphere {
+contract BetSphere is Ownable(msg.sender) {
+  address public feeRecipient;
   address private _router;
   uint256 private _fees = 500; // 0.5% fees
   uint256 private _minimalFees = 0.001 ether;
+  uint256 public feeAmount;
 
   mapping (uint256 => BetInfo) private _bets;
   mapping (address => mapping (uint256 => UserBet)) public userBets;
@@ -62,8 +73,8 @@ contract BetSphere {
     string[] memory params,
     string[] memory key
   ) public payable returns(uint256) {
-    uint256 id = uint256(keccak256(abi.encodePacked(timestamp, url))); // Generate a unique ID
-    _bets[id] = BetInfo(0, id, timestamp, 0, new uint256[](maxDirection), url, condition, key, params);
+    uint256 id = _computeId(condition, url, maxDirection); // Generate a unique ID
+    _bets[id] = BetInfo(1, 0, id, timestamp, 0, new uint256[](maxDirection), url, condition, key, params);
 
     emit Bet(id, timestamp, url);
     return id;
@@ -74,8 +85,10 @@ contract BetSphere {
     if (msg.value == 0) revert("No value sent");
     BetInfo storage bet = _bets[id];
     UserBet storage userBet = userBets[msg.sender][id];
+    if (bet.status == 0) revert("Bet not found");
+    if (bet.status == 2) revert("Bet has ended");
     if (direction > bet.directionsAmount.length) revert("Invalid direction");
-    if (bet.timestamp < block.timestamp) revert("Bet has ended");
+    if (bet.timestamp < block.timestamp) revert("");
     if (bet.result != 0) revert("Bet has already been resolved");
     if (userBet.direction != 0 && userBet.direction != direction) revert("Cannot bet on multiple directions");
     bet.total += msg.value;
@@ -86,15 +99,7 @@ contract BetSphere {
   }
 
   function withdraw(uint256 id) public returns(uint256 amounts) {
-    UserBet storage userBet = userBets[msg.sender][id];
-    if (userBet.id == 0) revert("No bet found");
-    if (_bets[userBet.id].result == 0) revert("Bet has not ended yet");
-    if (_bets[userBet.id].result == userBet.direction) {
-      uint256 odds = getOddsByDirection(userBet.id, userBet.direction - 1);
-      amounts = userBet.amount * odds / 10000;
-      (bool success, ) = payable(msg.sender).call{value: amounts}("");
-      if (!success) revert("Transfer failed");
-    }
+    
   }
 
   function requestOracle(uint256 id) public {
@@ -109,7 +114,15 @@ contract BetSphere {
     if (direction == 0) revert("Invalid direction");
     BetInfo storage bet = _bets[id];
     bet.result = direction;
+    feeAmount += bet.total * _fees / 10000;
     emit Result(id, "Fulfilled");
+  }
+
+  function withdrawFees() public onlyOwner {
+    if (feeAmount == 0) revert("No fees to withdraw");
+    (bool success, ) =payable(feeRecipient).call{value: feeAmount}("");
+    if (!success) revert("Failed to withdraw fees");
+    feeAmount = 0;
   }
 
   function getOdds(uint256 id) public view returns(uint256[] memory) {
@@ -139,7 +152,23 @@ contract BetSphere {
     return _bets[id];
   }
 
-  function userBet(uint256 id, address user) public view returns(UserBet memory) {
+  function getBetStatus(uint256 id) public view returns(uint8) {
+    return _bets[id].status;
+  }
+
+  function getBetResult(uint256 id) public view returns(uint8) {
+    return _bets[id].result;
+  }
+
+  function userBetById(uint256 id, address user) public view returns(UserBet memory) {
     return userBets[user][id];
+  }
+
+  function getBetId(string memory condition, string memory url, uint256 maxDirection) public pure returns(uint256) {
+    return _computeId(condition, url, maxDirection);
+  }
+
+  function _computeId(string memory condition, string memory url, uint256 maxDirection) private pure returns(uint256) {
+    return uint256(keccak256(abi.encodePacked(condition, url, maxDirection)));
   }
 }
