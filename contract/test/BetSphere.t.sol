@@ -24,17 +24,39 @@ contract BetSphereTest is Test {
     vm.stopPrank();
   }
 
-  function testCreateBet() public returns(uint256) {
-    vm.startPrank(owner);
-
-    string[] memory params = new string[](1);
-    params[0] = "usd";
-
-    string[] memory keys = new string[](1);
-    keys[0] = "price";
+  function testGetBetId() public {
+    uint256 id = testCreateBet("", "", new string[](0), new string[](0));
 
     string memory url = "https://api.coingecko.com/api/v3/simple/price";
     string memory condition = "if(price > 1000)return 1;return 2;";
+
+    uint256 betId = betSphere.getBetId(condition, "https://api.coingecko.com/api/v3/simple/price", 2);
+
+    require(betId == id, "Bet ID not set");
+  }
+
+  function testCreateBet(
+    string memory url,
+    string memory condition,
+    string[] memory params,
+    string[] memory keys
+  ) public returns(uint256) {
+    vm.startPrank(owner);
+
+    if (bytes(url).length == 0) {
+      url = "https://api.coingecko.com/api/v3/simple/price";
+    }
+    if (bytes(condition).length == 0) {
+      condition = "if(price > 1000)return 1;return 2;";
+    }
+    if (params.length == 0) {
+      params = new string[](1);
+      params[0] = "usd";
+    }
+    if (keys.length == 0) {
+      keys = new string[](1);
+      keys[0] = "price";
+    }
 
     uint256 id = betSphere.createBet(2, 1000, url, condition, params, keys);
 
@@ -58,7 +80,7 @@ contract BetSphereTest is Test {
   }
 
   function testBetFor() public {
-    uint256 id = testCreateBet();
+    uint256 id = testCreateBet("", "", new string[](0), new string[](0));
 
     vm.startPrank(user1);
 
@@ -66,7 +88,7 @@ contract BetSphereTest is Test {
 
     betSphere.betFor{value: 1 ether}(id, 1);
 
-    UserBet memory userBet = betSphere.userBet(id, user1);
+    UserBet memory userBet = betSphere.userBetById(id, user1);
 
     require(userBet.amount == 1 ether, "Amount not set");
     require(userBet.direction == 1, "Direction not set");
@@ -76,7 +98,7 @@ contract BetSphereTest is Test {
   }
 
   function testBetForShouldRevertInvalidDirection() public {
-    uint256 id = testCreateBet();
+    uint256 id = testCreateBet("", "", new string[](0), new string[](0));
 
     vm.startPrank(user1);
 
@@ -92,7 +114,7 @@ contract BetSphereTest is Test {
   }
 
   function testBetForShouldRevertNoValueSent() public {
-    uint256 id = testCreateBet();
+    uint256 id = testCreateBet("", "", new string[](0), new string[](0));
 
     vm.startPrank(user1);
 
@@ -103,7 +125,7 @@ contract BetSphereTest is Test {
   }
 
   function testGetOdds() public {
-    uint256 id = testCreateBet();
+    uint256 id = testCreateBet("", "", new string[](0), new string[](0));
 
     uint256[] memory odds = betSphere.getOdds(id);
     BetInfo memory bet = betSphere.betInfo(id);
@@ -149,7 +171,7 @@ contract BetSphereTest is Test {
   }
 
   function testWithdraw() public {
-    uint256 id = testCreateBet();
+    uint256 id = testCreateBet("", "", new string[](0), new string[](0));
 
     vm.startPrank(user1);
 
@@ -184,6 +206,52 @@ contract BetSphereTest is Test {
     uint256 balanceAfter = user1.balance;
 
     require(balanceAfter == 2.85 ether, "Balance not set");
+
+    vm.stopPrank();
+  }
+
+  function testGetActiveBets() public {
+    uint256 id1 = testCreateBet("", "", new string[](0), new string[](0));
+    uint256 id2 = testCreateBet("test2", "", new string[](0), new string[](0));
+    uint256 id3 = testCreateBet("test3", "", new string[](0), new string[](0));
+    uint256 id4 = testCreateBet("test4", "", new string[](0), new string[](0));
+
+    vm.startPrank(user1);
+
+    vm.deal(user1, 10 ether);
+
+    betSphere.betFor{value: 1 ether}(id1, 1);
+    betSphere.betFor{value: 2 ether}(id2, 1);
+    betSphere.betFor{value: 3 ether}(id3, 1);
+    betSphere.betFor{value: 4 ether}(id4, 1);
+
+    uint256[] memory activeBets = betSphere.getActiveBetsByUser(user1);
+
+    for (uint256 i = 0; i < activeBets.length; i++) {
+      require(
+        activeBets[i] == id1 ||
+        activeBets[i] == id2 ||
+        activeBets[i] == id3 ||
+        activeBets[i] == id4,
+        "Active bet not set"
+      );
+    }
+
+    betSphere.withdraw(id1);
+
+    activeBets = betSphere.getActiveBetsByUser(user1);
+
+    require(activeBets.length == 3, "Active bets incorrect length");
+
+    for (uint256 i = 0; i < activeBets.length; i++) {
+      require(activeBets[i] != id1, "Active bet not deleted correctly");
+      require(
+        activeBets[i] == id2 ||
+        activeBets[i] == id3 ||
+        activeBets[i] == id4,
+        "Active bet not set"
+      );
+    }
 
     vm.stopPrank();
   }

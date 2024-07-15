@@ -17,6 +17,7 @@ struct UserBet {
 }
 
 struct BetInfo {
+  address creator;
   uint8 status;
   uint8 result;
   uint256 id;
@@ -42,12 +43,15 @@ enum BetStatus {
 contract BetSphere is Ownable(msg.sender) {
   address public feeRecipient;
   address private _router;
+  uint256 private _creatorFees = 200; // 2% fees
   uint256 private _fees = 500; // 0.5% fees
   uint256 private _minimalFees = 0.001 ether;
   uint256 public feeAmount;
 
   mapping (uint256 => BetInfo) private _bets;
   mapping (address => mapping (uint256 => UserBet)) public userBets;
+  mapping (address => uint256[]) private _activeBetsByUser;
+  mapping (address => mapping(uint256 => uint256)) private _indexActiveBetsByUser;
 
   event Bet(uint256 indexed id, uint256 timestamp, string url);
   event Result(uint256 indexed id, string indexed value);
@@ -74,7 +78,7 @@ contract BetSphere is Ownable(msg.sender) {
     string[] memory key
   ) public payable returns(uint256) {
     uint256 id = _computeId(condition, url, maxDirection); // Generate a unique ID
-    _bets[id] = BetInfo(1, 0, id, timestamp, 0, new uint256[](maxDirection), url, condition, key, params);
+    _bets[id] = BetInfo(msg.sender, 1, 0, id, timestamp, 0, new uint256[](maxDirection), url, condition, key, params);
 
     emit Bet(id, timestamp, url);
     return id;
@@ -88,7 +92,7 @@ contract BetSphere is Ownable(msg.sender) {
     if (bet.status == 0) revert("Bet not found");
     if (bet.status == 2) revert("Bet has ended");
     if (direction > bet.directionsAmount.length) revert("Invalid direction");
-    if (bet.timestamp < block.timestamp) revert("");
+    if (bet.timestamp < block.timestamp) revert("Invalid timestamp");
     if (bet.result != 0) revert("Bet has already been resolved");
     if (userBet.direction != 0 && userBet.direction != direction) revert("Cannot bet on multiple directions");
     bet.total += msg.value;
@@ -96,10 +100,13 @@ contract BetSphere is Ownable(msg.sender) {
     userBet.id = id;
     userBet.amount += msg.value;
     userBet.direction = direction;
+    // Add the bet to the user's active bets
+    _activeBetsByUser[msg.sender].push(id);
+    _indexActiveBetsByUser[msg.sender][id] = _activeBetsByUser[msg.sender].length - 1;
   }
 
   function withdraw(uint256 id) public returns(uint256 amounts) {
-    
+    _deleteActiveBetForUser(msg.sender, id);
   }
 
   function requestOracle(uint256 id) public {
@@ -115,14 +122,23 @@ contract BetSphere is Ownable(msg.sender) {
     BetInfo storage bet = _bets[id];
     bet.result = direction;
     feeAmount += bet.total * _fees / 10000;
+    _withdrawCreatorFees(id);
     emit Result(id, "Fulfilled");
   }
 
   function withdrawFees() public onlyOwner {
     if (feeAmount == 0) revert("No fees to withdraw");
-    (bool success, ) =payable(feeRecipient).call{value: feeAmount}("");
+    (bool success, ) = payable(feeRecipient).call{value: feeAmount}("");
     if (!success) revert("Failed to withdraw fees");
     feeAmount = 0;
+  }
+
+  function _withdrawCreatorFees(uint256 id) internal {
+    BetInfo memory bet = _bets[id];
+    if (bet.total == 0) revert("No fees to withdraw");
+    uint256 creatorFees = bet.total * _creatorFees / 10000;
+    (bool success, ) = payable(bet.creator).call{value: creatorFees }("");
+    if (!success) revert("Failed to withdraw fees");
   }
 
   function getOdds(uint256 id) public view returns(uint256[] memory) {
@@ -134,7 +150,8 @@ contract BetSphere is Ownable(msg.sender) {
         unchecked { i++; }
         continue;
       }
-      uint256 amountMinusFees = bet.total - (bet.total * _fees / 10000);
+      uint256 totalFees = _fees + _creatorFees;
+      uint256 amountMinusFees = bet.total - (bet.total * totalFees / 10000);
       oddsByDirection[i] = amountMinusFees * 10000 / bet.directionsAmount[i];
       unchecked { i++; }
     }
@@ -168,7 +185,19 @@ contract BetSphere is Ownable(msg.sender) {
     return _computeId(condition, url, maxDirection);
   }
 
-  function _computeId(string memory condition, string memory url, uint256 maxDirection) private pure returns(uint256) {
+  function getActiveBetsByUser(address user) public view returns(uint256[] memory) {
+    return _activeBetsByUser[user];
+  }
+
+  function _computeId(string memory condition, string memory url, uint256 maxDirection) internal pure returns(uint256) {
     return uint256(keccak256(abi.encodePacked(condition, url, maxDirection)));
+  }
+
+  function _deleteActiveBetForUser(address user, uint256 betId) internal {
+    uint256 index = _indexActiveBetsByUser[user][betId];
+    uint256[] storage activeBets = _activeBetsByUser[msg.sender];
+    activeBets[index] = activeBets[activeBets.length - 1];
+    activeBets.pop();
+    _indexActiveBetsByUser[user][activeBets[index]] = index;
   }
 }
