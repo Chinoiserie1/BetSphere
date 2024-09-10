@@ -7,6 +7,8 @@ import { useWeb3ModalAccount } from "@web3modal/ethers/react";
 import { useReadContract } from "@/hooks/use-read-contract";
 import Link from "next/link";
 
+import { getActiveBets } from "@/app/actions/get-active-bets";
+
 type ActiveBetCardProps = {
   betId: string;
 };
@@ -19,9 +21,11 @@ export default function ActiveBetCard({ betId }: ActiveBetCardProps) {
 
   useEffect(() => {
     async function fetchBetInfo() {
-      const response = await fetch(`/api/get-active-bet?id=${betId}`);
-      const data = await response.json();
-      setBetInfo(data);
+      // const response = await fetch(`/api/get-active-bet?id=${betId}`);
+      // const data = await response.json();
+      const activeBets = await getActiveBets(betId);
+      console.log("activeBets", activeBets);
+      setBetInfo(activeBets?.bets as BetInfo);
     }
 
     async function getBetInfo() {
