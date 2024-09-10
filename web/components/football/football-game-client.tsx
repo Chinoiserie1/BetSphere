@@ -38,7 +38,6 @@ export default function FootballGameClient({ id }: FootballGameClientProps) {
   const fetchFixture = async () => {
     const res = await fetch(`/api/update-football-fixture?id=${id}`);
     const data = await res.json();
-    console.log(data);
     if (data.message != "Fixture updated") {
       console.log("clear interval");
       setClear(true);
@@ -64,10 +63,6 @@ export default function FootballGameClient({ id }: FootballGameClientProps) {
     console.log("no fixture");
     return <></>;
   }
-
-  console.log("render client", fixture);
-
-  console.log("fixture", fixture.league.logo);
 
   const status = fixture.status as FixtureStatus;
 

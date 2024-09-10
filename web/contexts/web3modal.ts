@@ -22,6 +22,14 @@ const testnet = {
   rpcUrl: "https://rinkeby.infura.io",
 };
 
+const anvil = {
+  chainId: 31337,
+  name: "Anvil",
+  currency: "ETH",
+  explorerUrl: "",
+  rpcUrl: "http://127.0.0.1:8545",
+};
+
 // 3. Create a metadata object
 const metadata = {
   name: "betSphere",
@@ -45,7 +53,7 @@ const ethersConfig = defaultConfig({
 // 5. Create a Web3Modal instance
 createWeb3Modal({
   ethersConfig,
-  chains: [mainnet, testnet],
+  chains: [mainnet, testnet, anvil],
   projectId,
   enableAnalytics: true, // Optional - defaults to your Cloud configuration
   enableOnramp: true, // Optional - false as default

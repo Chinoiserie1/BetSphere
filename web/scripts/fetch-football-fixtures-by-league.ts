@@ -66,6 +66,8 @@ export default async function fetchFootballFixturesByLeague(league: number) {
           "x-rapidapi-key": process.env.FOOTBALL_API_KEY,
           "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
         } as Record<string, string>,
+        cache: "force-cache",
+        next: { revalidate: 21600 },
       }
     ).then((res) => res.json());
 
@@ -160,8 +162,10 @@ export default async function fetchFootballFixturesByLeague(league: number) {
     }
 
     console.log("Fixtures fetched and stored successfully.");
+    return true;
   } catch (error) {
     console.error(error);
+    return false;
   } finally {
     await prisma.$disconnect();
   }

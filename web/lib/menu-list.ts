@@ -1,14 +1,13 @@
 import {
-  Tag,
   Users,
   Settings,
-  Bookmark,
-  SquarePen,
-  Dribbble,
   Activity,
   CandlestickChart,
   LayoutGrid,
+  DollarSign,
+  Wrench,
 } from "lucide-react";
+
 // import SportsSoccerIcon from "@mui/icons-material/SportsSoccer";<CandlestickChart />
 // import SportsBasketballIcon from "@mui/icons-material/SportsBasketball";
 
@@ -71,6 +70,25 @@ export function getMenuList(pathname: string): Group[] {
           label: "Finance",
           active: pathname.includes("/finance"),
           icon: CandlestickChart,
+          submenus: [],
+        },
+      ],
+    },
+    {
+      groupLabel: "Users Bets",
+      menus: [
+        {
+          href: "/custom-bets",
+          label: "Bets",
+          active: pathname.includes("/custom-bets"),
+          icon: DollarSign,
+          submenus: [],
+        },
+        {
+          href: "/create-bet",
+          label: "Create Bet",
+          active: pathname.includes("/create-bet"),
+          icon: Wrench,
           submenus: [],
         },
       ],

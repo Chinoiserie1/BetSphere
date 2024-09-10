@@ -12,7 +12,7 @@ import {
   FootballGames,
   FootballFixtures,
 } from "@/prisma/football-types";
-import createFootballFixtureByLeague from "@/utils/create-football-fixture-by-league";
+import createFootballFixtureByLeague from "@/utils/football/create-football-fixture-by-league";
 import { revalidatePath } from "next/cache";
 
 import FetchDbFixtures from "@/components/football/fetch-db-fixtures";
@@ -24,12 +24,12 @@ type Props = {
 
 const whitelistedLeaguesId = [1, 2, 3, 4, 6];
 
-import { addFixtureLeague } from "@/utils/add-fixture-league";
+import { addFixtureLeague } from "@/utils/football/add-fixture-league";
 
 // export const revalidate = 21600;
 
 export async function generateMetadata() {
-  const leagueNumbers = [1, 2, 3, 4, 6, 9, 39, 61, 71]; // Or fetch dynamically if needed
+  const leagueNumbers = [1, 2, 3, 4, 6, 9, 39, 61, 71];
 
   try {
     leagueNumbers.forEach(async (leagueNumber) => {

@@ -5,6 +5,11 @@ import FootballGameCard from "./football-game-card";
 import GameCard from "./game-card";
 import GameClient from "./game-client";
 import { addFixtureId } from "@/utils/football/add-fixture-id";
+import {
+  getDbFixture,
+  getDbFixtureCached,
+} from "@/utils/football/get-db-fixture";
+import { revalidateTag } from "next/cache";
 
 type FootballGameServerProps = {
   id: number;
@@ -19,15 +24,16 @@ type FixtureStatus = {
 export default async function FootballGameServer({
   id,
 }: FootballGameServerProps) {
-  let fixture = await prisma.footballFixture.findUnique({
-    where: { id },
-    include: {
-      league: true,
-      homeTeam: true,
-      awayTeam: true,
-      score: true,
-    },
-  });
+  // let fixture = await prisma.footballFixture.findUnique({
+  //   where: { id },
+  //   include: {
+  //     league: true,
+  //     homeTeam: true,
+  //     awayTeam: true,
+  //     score: true,
+  //   },
+  // });
+  let fixture = await getDbFixtureCached(id);
 
   if (!fixture) {
     return <div>Fixture not found</div>;
@@ -49,6 +55,8 @@ export default async function FootballGameServer({
   ) {
     console.log("Fixture started, updating...");
     fixture = await addFixtureId(fixture);
+    console.log(fixture);
+    revalidateTag(`fixture-${id}`);
   }
 
   if (!fixture) {

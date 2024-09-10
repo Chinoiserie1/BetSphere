@@ -49,6 +49,12 @@ export default async function FetchDbFixtures({
     return status.short === "NS" ? fixture : null;
   });
 
+  const current = new Date().getTime() / 1000;
+
+  fixtures = fixtures.filter((fixture) => {
+    return fixture.timestamp > current ? fixture : null;
+  });
+
   return (
     <div className="p-4 h-full flex flex-col">
       <Card className="p-4 flex-none rounded-2xl mb-4">

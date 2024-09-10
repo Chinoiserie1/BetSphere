@@ -8,15 +8,15 @@ datasource db {
 }
 
 model Url {
-  id          Int        @id @default(autoincrement())
-  name        String     @db.VarChar(255)
-  url         String     @unique @db.VarChar(255)
-  headers     Json
-  created     DateTime   @default(now())
-  updated     DateTime   @updatedAt
-  betInfo     BetInfo[]
-  Selection   Selection? @relation(fields: [selectionId], references: [id])
-  selectionId Int?
+  id      Int      @id @default(autoincrement())
+  name    String   @db.VarChar(255)
+  url     String   @unique @db.VarChar(255)
+  headers Json
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+  // betInfo     BetInfo[]
+  // Selection   Selection? @relation(fields: [selectionId], references: [id])
+  // selectionId Int?
 }
 
 model User {
@@ -26,7 +26,7 @@ model User {
   role    String   @default("user")
   created DateTime @default(now())
   updated DateTime @updatedAt
-  bets    Bet[]
+  // bets    Bet[]
 }
 
 model Category {
@@ -36,46 +36,43 @@ model Category {
 }
 
 model SubCategory {
-  id         Int         @id @default(autoincrement())
-  name       String      @unique
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
   categoryId Int
-  category   Category    @relation(fields: [categoryId], references: [id])
-  Selections Selection[]
+  category   Category @relation(fields: [categoryId], references: [id])
+  // Selections Selection[]
 }
 
-model Selection {
-  id            Int         @id @default(autoincrement())
-  name          String      @unique
-  slug          String      @unique
-  subCategoryId Int
-  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
-  bets          BetInfo[]
-  urls          Url[]
-}
+// model Selection {
+//   id            Int         @id @default(autoincrement())
+//   name          String      @unique
+//   slug          String      @unique
+//   subCategoryId Int
+//   subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+//   bets          BetInfo[]
+//   urls          Url[]
+// }
 
 model BetInfo {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(255)
-  description String
-  status      String
-  result      String
-  urlId       Int
-  url         Url       @relation(fields: [urlId], references: [id])
-  selectionId Int
-  selection   Selection @relation(fields: [selectionId], references: [id])
-  bets        Bet[]
+  id            String   @unique
+  name          String   @db.VarChar(255)
+  description   String
+  url           String
+  maxDirections Int
+  directions    String[]
+  status        String
 }
 
-model Bet {
-  id        Int      @id @default(autoincrement())
-  userId    String
-  BetInfoId Int
-  amount    Float
-  user      User     @relation(fields: [userId], references: [id])
-  BetInfo   BetInfo  @relation(fields: [BetInfoId], references: [id])
-  created   DateTime @default(now())
-  updated   DateTime @updatedAt
-}
+// model Bet {
+//   id        Int      @id @default(autoincrement())
+//   userId    String
+//   BetInfoId String
+//   amount    Float
+//   user      User     @relation(fields: [userId], references: [id])
+//   BetInfo   BetInfo  @relation(fields: [BetInfoId], references: [id])
+//   created   DateTime @default(now())
+//   updated   DateTime @updatedAt
+// }
 
 model FootballFixture {
   id               Int            @id
