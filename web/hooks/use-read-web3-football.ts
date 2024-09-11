@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { ethers, Contract } from "ethers";
 import { useWeb3ModalAccount } from "@web3modal/ethers/react";
+import switchProvider from "@/utils/web3/switch-provider";
 
 import ABI from "@/abi/BetSphere.json";
 
 export function useReadWeb3FootballBet() {
   const { chainId } = useWeb3ModalAccount();
+  const defaultProvider = switchProvider(chainId);
   const [provider, setProvider] = useState<ethers.AbstractProvider>(
-    ethers.getDefaultProvider(process.env.NEXT_PUBLIC_DEFAULT_PROVIDER)
+    ethers.getDefaultProvider(defaultProvider)
   );
   const [readContract, setReadContract] = useState<Contract>(
     new Contract(
@@ -19,10 +21,9 @@ export function useReadWeb3FootballBet() {
 
   // change provider and contract when chainId changes
   useEffect(() => {
-    if (!chainId) {
-      const provider = ethers.getDefaultProvider(
-        process.env.NEXT_PUBLIC_DEFAULT_PROVIDER
-      );
+    if (chainId) {
+      const defaultProvider = switchProvider(chainId);
+      const provider = ethers.getDefaultProvider(defaultProvider);
       const contract = new Contract(
         process.env.NEXT_PUBLIC_BETSPHERE_CONTRACT_ADDRESS as string,
         ABI.abi,
