@@ -27,7 +27,7 @@ export function SheetMenu() {
           >
             <Link href="/" className="flex items-center gap-2">
               <PanelsTopLeft className="w-6 h-6 mr-1" />
-              <h1 className="font-bold text-lg">BetSphere</h1>
+              <h1 className="font-bold text-lg">Better</h1>
             </Link>
           </Button>
         </SheetHeader>

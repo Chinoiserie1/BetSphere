@@ -10,7 +10,7 @@ const Header = () => {
         "z-20 h-16 flex items-center p-3 px-8 border-0 border-b rounded-none"
       )}
     >
-      <div className="text-2xl">BetSphere</div>
+      <div className="text-2xl">Better</div>
       <div className="ml-auto">
         <ConnectButton />
       </div>

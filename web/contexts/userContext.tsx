@@ -126,7 +126,7 @@ export const UserProvider = ({ children }: React.PropsWithChildren) => {
       const provider = new BrowserProvider(walletProvider);
       const signer = await provider.getSigner();
       const timestamp = new Date().getTime();
-      const message = `BetSphere: sign to access functionalities ${timestamp}`;
+      const message = `Better: sign to access functionalities ${timestamp}`;
       const signature = await signer?.signMessage(message);
       if (signature) {
         getJwtMutation.mutate({ address, message, signature });

@@ -32,8 +32,8 @@ const anvil = {
 
 // 3. Create a metadata object
 const metadata = {
-  name: "betSphere",
-  description: "betSphere is a decentralized betting platform.",
+  name: "better",
+  description: "better is a decentralized betting platform.",
   url: process.env.NEXT_PUBLIC_WEBSITE_URL || "",
   icons: ["https://avatars.mywebsite.com/"],
 };

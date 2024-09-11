@@ -10,8 +10,8 @@ import { ThemeProvider } from "@/contexts/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "betSphere",
-  description: "betSphere is a decentralized betting platform.",
+  title: "better",
+  description: "better is a decentralized betting platform.",
 };
 
 export default function RootLayout({
