@@ -22,6 +22,22 @@ const testnet = {
   rpcUrl: "https://rinkeby.infura.io",
 };
 
+const blastMainet = {
+  chainId: 81457,
+  name: "Blast",
+  currency: "ETH",
+  explorerUrl: "https://blastscan.io",
+  rpcUrl: "https://rpc.ankr.com/blast",
+};
+
+const blastTestnet = {
+  chainId: 168587773,
+  name: "Blast Sepolia",
+  currency: "ETH",
+  explorerUrl: "https://sepolia.blastexplorer.io",
+  rpcUrl: "https://rpc.ankr.com/blast_testnet_sepolia",
+};
+
 const anvil = {
   chainId: 31337,
   name: "Anvil",
@@ -53,7 +69,7 @@ const ethersConfig = defaultConfig({
 // 5. Create a Web3Modal instance
 createWeb3Modal({
   ethersConfig,
-  chains: [mainnet, testnet, anvil],
+  chains: [blastMainet, blastTestnet, anvil],
   projectId,
   enableAnalytics: true, // Optional - defaults to your Cloud configuration
   enableOnramp: true, // Optional - false as default
