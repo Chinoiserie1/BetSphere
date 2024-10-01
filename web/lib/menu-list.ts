@@ -45,12 +45,13 @@ export function getMenuList(pathname: string): Group[] {
       ],
     },
     {
-      groupLabel: "Categories",
+      groupLabel: "Games",
       menus: [
         {
           href: "",
           label: "Sports",
-          active: pathname.includes("/"),
+          active:
+            pathname.includes("/football") || pathname.includes("/basketball"),
           icon: Activity,
           submenus: [
             {
@@ -70,6 +71,25 @@ export function getMenuList(pathname: string): Group[] {
           label: "Finance",
           active: pathname.includes("/finance"),
           icon: CandlestickChart,
+          submenus: [],
+        },
+      ],
+    },
+    {
+      groupLabel: "Raffles",
+      menus: [
+        {
+          href: "raffles",
+          label: "Raffles List",
+          active: pathname.includes("/raffles"),
+          icon: DollarSign,
+          submenus: [],
+        },
+        {
+          href: "/create-raffle",
+          label: "Make my own Raffle",
+          active: pathname.includes("/create-raffle"),
+          icon: Wrench,
           submenus: [],
         },
       ],
