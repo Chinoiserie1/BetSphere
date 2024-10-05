@@ -1,0 +1,50 @@
+"use client";
+import Image from "next/image";
+import { Card, CardContent, CardFooter } from "./ui/card";
+
+import Countdown from "./countdown";
+
+type GlimmerGrabCardProps = {
+  imgPath: string;
+  title: string;
+  description: string;
+  price: string;
+  id: number;
+  timestamp: number;
+};
+
+export default function GlimmerGrabCard({
+  imgPath,
+  title,
+  description,
+  price,
+  id,
+  timestamp,
+}: GlimmerGrabCardProps) {
+  return (
+    <Card style={{ minWidth: "15rem" }}>
+      <CardContent className="flex flex-col sm:flex-row p-4 w-full">
+        <div className="relative w-full sm:w-1/3 min-w-40 min-h-40 h-60">
+          <Image
+            src={imgPath}
+            alt={title}
+            fill
+            style={{ objectFit: "cover" }}
+            className="rounded-lg"
+          />
+        </div>
+        <div className="flex flex-1 flex-col ml-0 sm:ml-4 w-full mt-4 sm:mt-0">
+          <h2 className="text-xl font-bold">{title}</h2>
+          <p className="text-md text-pink-500">Value: {price}</p>
+          <p className="text-md pt-2">{description}</p>
+        </div>
+      </CardContent>
+      <CardFooter className="flex flex-col sm:flex-row w-full">
+        <div className="flex w-full sm:w-1/3">
+          <Countdown targetTimestampInSecond={new Date(timestamp).getTime()} />
+        </div>
+        <div className="flex flex-1 ml-4 mt-2 sm:mt-0"></div>
+      </CardFooter>
+    </Card>
+  );
+}
