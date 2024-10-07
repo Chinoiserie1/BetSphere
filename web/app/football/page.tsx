@@ -31,10 +31,17 @@ import { addFixtureLeague } from "@/utils/football/add-fixture-league";
 export async function generateMetadata() {
   const leagueNumbers = [1, 2, 3, 4, 6, 9, 39, 61, 71];
 
+  // try {
+  //   leagueNumbers.forEach(async (leagueNumber) => {
+  //     await addFixtureLeague(leagueNumber);
+  //   });
+  // } catch (error) {
+  //   console.error("Failed to fetch fixtures from API", error);
+  // }
   try {
-    leagueNumbers.forEach(async (leagueNumber) => {
-      await addFixtureLeague(leagueNumber);
-    });
+    await Promise.all(
+      leagueNumbers.map((leagueNumber) => addFixtureLeague(leagueNumber))
+    );
   } catch (error) {
     console.error("Failed to fetch fixtures from API", error);
   }
