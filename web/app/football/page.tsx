@@ -38,10 +38,17 @@ export async function generateMetadata() {
   // } catch (error) {
   //   console.error("Failed to fetch fixtures from API", error);
   // }
+  // try {
+  //   await Promise.all(
+  //     leagueNumbers.map((leagueNumber) => addFixtureLeague(leagueNumber))
+  //   );
+  // } catch (error) {
+  //   console.error("Failed to fetch fixtures from API", error);
+  // }
   try {
-    await Promise.all(
-      leagueNumbers.map((leagueNumber) => addFixtureLeague(leagueNumber))
-    );
+    for (const leagueNumber of leagueNumbers) {
+      await addFixtureLeague(leagueNumber);
+    }
   } catch (error) {
     console.error("Failed to fetch fixtures from API", error);
   }
