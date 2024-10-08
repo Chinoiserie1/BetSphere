@@ -54,7 +54,7 @@ export default function GlimmerGrabCard({
         <div className="flex w-full sm:w-1/3">
           <Countdown targetTimestampInSecond={new Date(timestamp).getTime()} />
         </div>
-        <div className="flex flex-1 flex-col ml-4 mt-2 sm:mt-0">
+        <div className="flex sm:flex-1 w-full flex-col ml-4 mt-2 sm:mt-0">
           <Progress value={50} />
           <div className="relative flex flex-row items-center justify-between text-xs text-muted-foreground w-full">
             <p>0</p>
