@@ -10,7 +10,7 @@ export default function Layout({ children }: Props) {
     <div className="w-screen h-screen overflow-hidden">
       <AdminPanelLayout>
         <HomeHeader />
-        <div className="h-[calc(100vh_-_168px)] sm:h-[calc(100vh_-_188px)] w-full">
+        <div className="h-[calc(100vh_-_168px)] sm:h-[calc(100vh_-_184px)] w-full">
           {children}
         </div>
       </AdminPanelLayout>
