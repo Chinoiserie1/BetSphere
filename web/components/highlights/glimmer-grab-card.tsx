@@ -1,8 +1,8 @@
 "use client";
 import Image from "next/image";
-import { Card, CardContent, CardFooter } from "./ui/card";
+import { Card, CardContent, CardFooter } from "../ui/card";
 
-import Countdown from "./countdown";
+import Countdown from "../countdown";
 
 type GlimmerGrabCardProps = {
   imgPath: string;
@@ -36,7 +36,17 @@ export default function GlimmerGrabCard({
         <div className="flex flex-1 flex-col ml-0 sm:ml-4 w-full mt-4 sm:mt-0">
           <h2 className="text-xl font-bold">{title}</h2>
           <p className="text-md text-pink-500">Value: {price}</p>
-          <p className="text-md pt-2">{description}</p>
+          <p
+            className="text-md overflow-hidden text-ellipsis"
+            style={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 8,
+              maxHeight: "12em",
+            }}
+          >
+            {description}
+          </p>
         </div>
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row w-full">
