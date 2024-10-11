@@ -25,7 +25,7 @@ export default function GlimmerGrabCard({
   return (
     <Card style={{ minWidth: "15rem" }}>
       <CardContent className="flex flex-col sm:flex-row p-4 w-full">
-        <div className="relative w-full sm:w-1/3 min-w-40 min-h-40 h-60">
+        <div className="relative items-center w-full sm:w-1/3 min-w-40 min-h-40 h-60">
           <Image
             src={imgPath}
             alt={title}
@@ -38,11 +38,11 @@ export default function GlimmerGrabCard({
           <h2 className="text-xl font-bold">{title}</h2>
           <p className="text-md text-pink-500">Value: {price}</p>
           <p
-            className="text-md overflow-hidden text-ellipsis"
+            className="mt-4 text-md overflow-hidden text-ellipsis"
             style={{
               display: "-webkit-box",
               WebkitBoxOrient: "vertical",
-              WebkitLineClamp: 8,
+              WebkitLineClamp: 7,
               maxHeight: "12em",
             }}
           >
