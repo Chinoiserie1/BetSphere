@@ -1,7 +1,5 @@
-import RetroGrid from "@/components/ui/retro-grid";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import AnimatedRibbonBackground from "@/components/ui/animate-background";
-import AnimatedBlob from "@/components/ui/animated-blob";
 import TextRevealByWord from "@/components/ui/text-reveal";
 import Image from "next/image";
 
