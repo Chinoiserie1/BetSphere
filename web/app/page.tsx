@@ -42,8 +42,9 @@ export default function Home() {
                 transparently transferred via blockchain, directly to GIVING
                 BACK. This ensures we know exactly how the funds are utilized,
                 allowing you and us at BETTER to make a tangible impact on the
-                world. Together, we're not just enjoying unique entertainment;
-                we're actively making the world a better place.{" "}
+                world. Together, we&apos;re not just enjoying unique
+                entertainment; we&apos;re actively making the world a better
+                place.{" "}
               </p>
             </CardContent>
           </Card>
