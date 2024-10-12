@@ -13,7 +13,7 @@ export default function HomeHeader() {
           H I G H L I G H T S
         </h1>
         <div className="flex items-center space-x-2">
-          <ModeToggle />
+          {/* <ModeToggle /> */}
           <UserToggle />
         </div>
       </div>
