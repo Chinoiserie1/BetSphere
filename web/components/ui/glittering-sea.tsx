@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
 
-// Shape class defined outside of useEffect so it's accessible globally in the component
 class Shape {
   x: number;
   y: number;
@@ -83,12 +82,11 @@ const GlitteringSea: React.FC = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Calculate number of particles based on screen size
     const calculateParticleCount = () => {
       X = canvas.width = window.innerWidth;
       Y = canvas.height = window.innerHeight;
       const area = X * Y;
-      shapeNum = Math.floor(area / 5000); // 1 particle per 10,000 pixels
+      shapeNum = Math.floor(area / 5000);
       shapes = [];
       for (let i = 0; i < shapeNum; i++) {
         shapes.push(
@@ -108,19 +106,18 @@ const GlitteringSea: React.FC = () => {
       }
       timeoutId = setTimeout(() => {
         requestAnimationFrame(render);
-      }, 50); // 50ms delay to slow down animation
+      }, 50);
     };
 
-    calculateParticleCount(); // Set initial particle count based on screen size
+    calculateParticleCount();
     render();
 
     const onResize = () => {
-      calculateParticleCount(); // Recalculate particle count on resize
+      calculateParticleCount();
     };
 
     window.addEventListener("resize", onResize);
 
-    // Cleanup when the component unmounts
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
