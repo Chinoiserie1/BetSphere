@@ -1,6 +1,4 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import AnimatedRibbonBackground from "@/components/ui/animate-background";
-import AnimatedBlob from "@/components/ui/animated-blob";
 import TextRevealByWord from "@/components/ui/text-reveal";
 import Image from "next/image";
 import GlitteringSea from "@/components/ui/glittering-sea";
@@ -21,8 +19,6 @@ export default function Home() {
         <h1 className="mt-8 text-center font-custom text-3xl">
           A Stronger bond
         </h1>
-        {/* <AnimatedRibbonBackground /> */}
-        {/* <AnimatedBlob /> */}
         <GlitteringSea />
       </div>
       <div className="flex h-[200vh] items-center justify-center">
