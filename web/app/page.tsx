@@ -8,7 +8,7 @@ export default function Home() {
     <div className="w-screen h-screen">
       <div className="flex h-full items-center justify-center flex-col">
         <div>
-          <Card className="z-10 bg-white/60 rounded-none border-black border-4">
+          <Card className="z-20 bg-white/60 rounded-none border-black border-4">
             <div className="flex items-center justify-center w-full h-full p-4">
               <h1 className="text-4xl font-extrabold text-center text-black">
                 BETTER
@@ -16,9 +16,17 @@ export default function Home() {
             </div>
           </Card>
         </div>
-        <h1 className="mt-8 text-center font-custom text-3xl">
+        {/* <h1 className="mt-8 text-center font-custom text-3xl">
           A Stronger bond
-        </h1>
+        </h1> */}
+        <div className="p-4 items-center justify-center">
+          <Image
+            src="/stronger-bond.svg"
+            alt="A stronger bond"
+            width={250}
+            height={90}
+          ></Image>
+        </div>
         <GlitteringSea />
       </div>
       <div className="flex h-[200vh] items-center justify-center">
