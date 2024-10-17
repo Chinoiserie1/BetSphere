@@ -2,24 +2,23 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import TextRevealByWord from "@/components/ui/text-reveal";
 import Image from "next/image";
 import GlitteringSea from "@/components/ui/glittering-sea";
+import MetaballsAnimation from "@/components/ui/metaballs-animation";
 
 export default function Home() {
   return (
     <div className="w-screen h-screen">
       <div className="flex h-full items-center justify-center flex-col">
-        <div>
-          <Card className="z-20 bg-white/60 rounded-none border-black border-4">
-            <div className="flex items-center justify-center w-full h-full p-4">
-              <h1 className="text-4xl font-extrabold text-center text-black">
-                BETTER
-              </h1>
-            </div>
-          </Card>
-        </div>
+        <Card className="z-20 bg-white/60 rounded-none border-black border-4">
+          <div className="flex items-center justify-center w-full h-full p-4">
+            <h1 className="text-4xl font-extrabold text-center text-black">
+              BETTER
+            </h1>
+          </div>
+        </Card>
         {/* <h1 className="mt-8 text-center font-custom text-3xl">
           A Stronger bond
         </h1> */}
-        <div className="p-4 items-center justify-center">
+        <div className="z-20 p-4 items-center justify-center">
           <Image
             src="/stronger-bond.svg"
             alt="A stronger bond"
@@ -27,7 +26,8 @@ export default function Home() {
             height={90}
           ></Image>
         </div>
-        <GlitteringSea />
+        {/* <GlitteringSea /> */}
+        <MetaballsAnimation />
       </div>
       <div className="flex h-[200vh] items-center justify-center">
         <TextRevealByWord
