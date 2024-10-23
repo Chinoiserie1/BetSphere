@@ -126,6 +126,9 @@ contract BetSphereTest is Test {
 
   function testGetOdds() public {
     uint256 id = testCreateBet("", "", new string[](0), new string[](0));
+    (uint256 creatorFees, uint256 denominator) = betSphere.getCreatorFees();
+    (uint256 fees, ) = betSphere.getFees();
+
 
     uint256[] memory odds = betSphere.getOdds(id);
     BetInfo memory bet = betSphere.betInfo(id);
@@ -143,10 +146,11 @@ contract BetSphereTest is Test {
     bet = betSphere.betInfo(id);
     odds = betSphere.getOdds(id);
 
-    require(bet.directionsAmount[0] == 1 ether, "Directions amount 1 not set");
+    uint256 amountBet = 1 ether;
+    require(bet.directionsAmount[0] == amountBet, "Directions amount 1 not set");
     require(bet.directionsAmount[1] == 0, "Directions amount 2 not set");
-    require(bet.total == 1 ether, "Total not set");
-    require(odds[0] == 9500, "Odds 1 not set");
+    require(bet.total == amountBet, "Total not set");
+    require(odds[0] == denominator - (fees + creatorFees), "Odds 1 not set");
     require(odds[1] == 0, "Odds 2 not set");
 
     vm.stopPrank();
@@ -160,12 +164,21 @@ contract BetSphereTest is Test {
     bet = betSphere.betInfo(id);
     odds = betSphere.getOdds(id);
 
-    require(bet.directionsAmount[0] == 1 ether, "Directions amount 1 not set");
-    require(bet.directionsAmount[1] == 2 ether, "Directions amount 2 not set");
-    require(bet.total == 3 ether, "Total not set");
+    uint256 amountBet2 = 2 ether;
+    require(bet.directionsAmount[0] == amountBet, "Directions amount 1 not set");
+    require(bet.directionsAmount[1] ==amountBet2, "Directions amount 2 not set");
+    require(bet.total == amountBet + amountBet2, "Total not set");
 
-    require(odds[0] == 28500, "Odds 1 not set");
-    require(odds[1] == 14250, "Odds 2 not set");
+    uint256 totalFees = fees + creatorFees;
+
+    uint256 expectedOdd1 = (bet.total - ( bet.total * totalFees / denominator)) * denominator / amountBet;
+    uint256 expectedOdd2 = (bet.total - ( bet.total * totalFees / denominator)) * denominator / amountBet2;
+
+    require(odds[0] == expectedOdd1, "Odds 1 not set");
+    require(odds[1] == expectedOdd2, "Odds 2 not set");
+
+    require(amountBet * expectedOdd1 / denominator < bet.total, "Odds 1 computation fail excess");
+    require(amountBet * expectedOdd2 / denominator < bet.total, "Odds 2 computation fail excess");
 
     vm.stopPrank();
   }
@@ -189,9 +202,14 @@ contract BetSphereTest is Test {
 
     vm.stopPrank();
 
+    uint256 balanceContract = address(betSphere).balance;
+    require(balanceContract == 3 ether, "Balance not set");
+
     vm.startPrank(oracle);
 
     betSphere.fulfillRequest(id, 1);
+    balanceContract = address(betSphere).balance;
+    require(balanceContract < 3 ether, "Fee creator not distributed");
 
     vm.stopPrank();
 
@@ -200,6 +218,8 @@ contract BetSphereTest is Test {
     uint256 balanceBefore = user1.balance;
 
     require(balanceBefore == 0, "Balance not set");
+
+    console.log(address(betSphere).balance);
 
     betSphere.withdraw(id);
 
@@ -237,6 +257,13 @@ contract BetSphereTest is Test {
       );
     }
 
+    vm.stopPrank();
+    vm.prank(oracle);
+
+    betSphere.fulfillRequest(id1, 1);
+
+    vm.startPrank(user1);
+
     betSphere.withdraw(id1);
 
     activeBets = betSphere.getActiveBetsByUser(user1);
@@ -254,5 +281,131 @@ contract BetSphereTest is Test {
     }
 
     vm.stopPrank();
+  }
+
+  function testWithdrawIfUserWin() public {
+    uint256 id = testCreateBet("", "", new string[](0), new string[](0));
+
+    vm.startPrank(user1);
+
+    vm.deal(user1, 1 ether);
+
+    betSphere.betFor{value: 1 ether}(id, 1);
+
+    vm.stopPrank();
+
+    vm.startPrank(user2);
+
+    vm.deal(user2, 2 ether);
+
+    betSphere.betFor{value: 2 ether}(id, 2);
+
+    vm.stopPrank();
+
+    vm.startPrank(oracle);
+
+    betSphere.fulfillRequest(id, 1);
+
+    vm.stopPrank();
+
+    vm.startPrank(user1);
+
+    uint256 balanceBefore = user1.balance;
+
+    require(balanceBefore == 0, "Balance not set");
+
+    betSphere.withdraw(id);
+
+    vm.expectRevert();
+    betSphere.withdraw(id);
+
+    uint256 balanceAfter = user1.balance;
+
+    require(balanceAfter == 2.85 ether, "Balance not set");
+
+    vm.stopPrank();
+  }
+
+  function testDeleteActiveBetForUser() public {
+    uint256 id1 = testCreateBet("", "", new string[](0), new string[](0));
+    uint256 id2 = testCreateBet("test2", "", new string[](0), new string[](0));
+    uint256 id3 = testCreateBet("test3", "", new string[](0), new string[](0));
+    uint256 id4 = testCreateBet("test4", "", new string[](0), new string[](0));
+
+    vm.startPrank(user1);
+
+    vm.deal(user1, 10 ether);
+
+    betSphere.betFor{value: 1 ether}(id1, 1);
+
+    uint256[] memory activeBets = betSphere.getActiveBetsByUser(user1);
+
+    require( activeBets[0] == id1, "Active bet id1 not set");
+
+    vm.stopPrank();
+    vm.prank(oracle);
+
+    betSphere.fulfillRequest(id1, 1);
+
+    vm.prank(user1);
+    
+    betSphere.withdraw(id1);
+
+    activeBets = betSphere.getActiveBetsByUser(user1);
+
+    require(activeBets.length == 0, "fail delete active bet");
+
+    vm.startPrank(user1);
+
+    betSphere.betFor{value: 2 ether}(id2, 1);
+    betSphere.betFor{value: 3 ether}(id3, 1);
+
+    activeBets = betSphere.getActiveBetsByUser(user1);
+
+    require(activeBets.length == 2, "fail add bet");
+
+    for (uint256 i = 0; i < activeBets.length; i++) {
+      require(
+        activeBets[i] == id2 ||
+        activeBets[i] == id3,
+        "Active bet id2 & id3 not set"
+      );
+    }
+
+    betSphere.betFor{value: 4 ether}(id4, 1);
+
+    activeBets = betSphere.getActiveBetsByUser(user1);
+
+    require(activeBets.length == 3, "fail add bet");
+
+    for (uint256 i = 0; i < activeBets.length; i++) {
+      require(
+        activeBets[i] == id2 ||
+        activeBets[i] == id3 ||
+        activeBets[i] == id4,
+        "Active bet id2, id3 & id3 not set"
+      );
+    }
+
+    vm.stopPrank();
+    vm.prank(oracle);
+
+    betSphere.fulfillRequest(id3, 1);
+
+    vm.prank(user1);
+    
+    betSphere.withdraw(id3);
+
+    activeBets = betSphere.getActiveBetsByUser(user1);
+
+    require(activeBets.length == 2, "fail delete active bet");
+
+    for (uint256 i = 0; i < activeBets.length; i++) {
+      require(
+        activeBets[i] == id2 ||
+        activeBets[i] == id4,
+        "Active bet id2 & id4 not set"
+      );
+    }
   }
 }
