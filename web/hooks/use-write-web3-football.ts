@@ -59,6 +59,7 @@ export function useWriteWeb3Football(
   const createBet = async (
     maxDirection: number,
     timestamp: number,
+    verificationTimestamp: number,
     url: string,
     condition: string,
     params: string[],
@@ -72,6 +73,7 @@ export function useWriteWeb3Football(
     const id = await contract.createBet(
       maxDirection,
       timestamp,
+      verificationTimestamp,
       url,
       condition,
       params,

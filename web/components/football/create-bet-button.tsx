@@ -62,11 +62,12 @@ export default function CreateBetButton({
     console.log("betInfo", betInfo);
     if (ethers.toNumber(betInfo[0]) == 0) {
       try {
-        const timestamp = fixtureTimestamp + 3600 * 3;
+        const Verificationtimestamp = fixtureTimestamp + 3600 * 3; // 3 hours after the match
         const url = getFootballFixtureURL(fixtureId);
         const id = await createBet(
           maxDirection,
-          timestamp,
+          fixtureTimestamp,
+          Verificationtimestamp,
           url,
           winnerCondition,
           [],
