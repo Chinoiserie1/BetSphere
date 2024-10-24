@@ -5,6 +5,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IOffChainDataFetch} from "./Interface/IOffChainDataFetch.sol";
 import {IResponseRequest} from "./Interface/IResponseRequest.sol";
+import {OffChainDataFetchErrors} from "./Interface/error/OffChainDataFetchErrors.sol";
+
 
 /**
  * @title OffChainDataFetch
@@ -16,10 +18,20 @@ contract OffChainDataFetch is Ownable {
   mapping(address => bool) private _authorizedRequester;
 
   event Request(
+    uint256 timestamp,
     uint256 indexed id,
     address indexed target,
     string url,
-    string params,
+    string[] params,
+    string[] keys,
+    string condition
+  );
+  event RequestAutomatic(
+    uint256 timestamp,
+    uint256 indexed id,
+    address indexed target,
+    string url,
+    string[] params,
     string[] keys,
     string condition
   );
@@ -61,7 +73,7 @@ contract OffChainDataFetch is Ownable {
 
   /**
    * @dev Request data from an off-chain service
-   * @param timestamp The timestamp of the request
+   * @param verificationTimestamp The timestamp of the request
    * @param url The URL of the data to fetch
    * @param params The parameters of the request
    * @param keys Keys of the data to fetch
@@ -69,15 +81,28 @@ contract OffChainDataFetch is Ownable {
    * @return The ID of the request
    */
   function request(
-    uint256 timestamp,
+    uint256 verificationTimestamp,
     string memory url,
-    string memory params,
+    string[] memory params,
+    string[] memory keys,
+    string memory condition
+  ) public returns(uint256) {
+    if (!_authorizedRequester[msg.sender]) revert OffChainDataFetchErrors.UnauthorizedRequester();
+    uint256 id = uint256(keccak256(abi.encode(verificationTimestamp, url, keys, condition))); // Generate a unique ID
+    emit Request(verificationTimestamp, id, msg.sender, url, params, keys, condition); // emit event Request for the off-chain service
+    return id;
+  }
+
+  function requestAutomatic(
+    uint256 verificationTimestamp,
+    string memory url,
+    string[] memory params,
     string[] memory keys,
     string memory condition
   ) public returns(uint256) {
     if (!_authorizedRequester[msg.sender]) revert("OffChainDataFetch: unauthorized requester");
-    uint256 id = uint256(keccak256(abi.encode(timestamp, url, keys, condition))); // Generate a unique ID
-    emit Request(id, msg.sender, url, params, keys, condition); // emit event Request for the off-chain service
+    uint256 id = uint256(keccak256(abi.encode(verificationTimestamp, url, keys, condition))); // Generate a unique ID
+    emit RequestAutomatic(verificationTimestamp, id, msg.sender, url, params, keys, condition); // emit event Request for the off-chain service
     return id;
   }
 

@@ -3,6 +3,12 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
+[rpc_endpoints]
+blastSepolia = "${BLAST_SEPOLIA_RPC_URL}"
+
+[etherscan]
+blastSepolia = { key = "${API_KEY_BLASTSCAN}" }
+
 # Remappings in remappings.txt
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

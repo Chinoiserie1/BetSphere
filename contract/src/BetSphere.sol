@@ -4,6 +4,7 @@ pragma solidity ^0.8.25;
 import {console} from "forge-std/Test.sol";
 
 import {IOffChainDataFetch} from "./Interface/IOffChainDataFetch.sol";
+import {BetSphereErrors} from "./Interface/error/BetSphereErrors.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -24,6 +25,7 @@ struct BetInfo {
   uint8 result;
   uint256 id;
   uint256 timestamp;
+  uint256 verificationTimestamp;
   uint256 total;
   uint256[] directionsAmount;
   string url;
@@ -80,29 +82,36 @@ contract BetSphere is Ownable(msg.sender) {
   function createBet(
     uint256 maxDirection,
     uint256 timestamp,
+    uint256 verificationTimestamp,
     string memory url,
     string memory condition,
     string[] memory params,
     string[] memory key
   ) public payable returns(uint256) {
+    if (timestamp > verificationTimestamp) revert BetSphereErrors.InvalidVerificationTimestamp();
     uint256 id = _computeId(condition, url, maxDirection); // Generate a unique ID
-    _bets[id] = BetInfo(msg.sender, 1, 0, id, timestamp, 0, new uint256[](maxDirection), url, condition, key, params);
+    _bets[id] = BetInfo(
+      msg.sender, 1, 0, id, timestamp, verificationTimestamp, 0, new uint256[](maxDirection),
+      url, condition, key, params
+    );
+
+    IOffChainDataFetch(_router).requestAutomatic(verificationTimestamp, url, params, key, condition);
 
     emit Bet(id, timestamp, url);
     return id;
   }
 
   function betFor(uint256 id, uint8 direction) public payable {
-    if (direction == 0) revert("Invalid direction");
-    if (msg.value == 0) revert("No value sent");
+    if (direction == 0) revert BetSphereErrors.InvalidBetDirection();
+    if (msg.value == 0) revert BetSphereErrors.NoFundsSent();
     BetInfo storage bet = _bets[id];
     UserBet storage userBet = userBets[msg.sender][id];
-    if (bet.status == 0) revert("Bet not found");
-    if (bet.status == 2) revert("Bet has ended");
-    if (direction > bet.directionsAmount.length) revert("Invalid direction");
-    if (bet.timestamp < block.timestamp) revert("Invalid timestamp");
-    if (bet.result != 0) revert("Bet has already been resolved");
-    if (userBet.direction != 0 && userBet.direction != direction) revert("Cannot bet on multiple directions");
+    if (bet.status == 0) revert BetSphereErrors.BetNotFound();
+    if (bet.status == 2) revert BetSphereErrors.BetEnded();
+    if (direction > bet.directionsAmount.length) revert BetSphereErrors.InvalidBetDirection();
+    if (bet.timestamp < block.timestamp) revert BetSphereErrors.BetEnded();
+    if (bet.result != 0) revert BetSphereErrors.BetResolved();
+    if (userBet.direction != 0 && userBet.direction != direction) revert BetSphereErrors.CanNotBetOnMultipleDirections();
     bet.total += msg.value;
     bet.directionsAmount[direction - 1] += msg.value;
     userBet.id = id;
@@ -116,29 +125,29 @@ contract BetSphere is Ownable(msg.sender) {
   function withdraw(uint256 id) public returns(uint256 amounts) {
     UserBet memory userBet = userBets[msg.sender][id];
     BetInfo memory bet = _bets[id];
-    if (userBet.amount == 0) revert("No bet found");
-    if (bet.status != uint8(BetStatus.Ended)) revert("Bet verification not ended");
-    if (bet.result == 0) revert("Bet not resolved");
+    if (userBet.amount == 0) revert BetSphereErrors.BetNotFound();
+    if (bet.status != uint8(BetStatus.Ended)) revert BetSphereErrors.BetNotEnded();
+    if (bet.result == 0) revert BetSphereErrors.BetNotResolved();
     uint256 betOdds = getOddsByDirection(id, userBet.direction);
     if (userBet.direction == bet.result) {
       amounts = userBet.amount * betOdds / denominator;
-    } else revert("Bet lost");
+    } else revert BetSphereErrors.BetLost();
     (bool success, ) = payable(msg.sender).call{value: amounts}("");
-    if (!success) revert("Failed to withdraw");
+    if (!success) revert BetSphereErrors.FailedToWithdraw();
     userBets[msg.sender][id].amount = 0;
     _deleteActiveBetForUser(msg.sender, id);
   }
 
   function requestOracle(uint256 id) public {
-    if (_bets[id].timestamp < block.timestamp) revert("Bet has not ended yet");
+    if (_bets[id].verificationTimestamp < block.timestamp) revert BetSphereErrors.BetNotEnded();
     BetInfo storage bet = _bets[id];
-    IOffChainDataFetch(_router).request(bet.timestamp, bet.url);
+    IOffChainDataFetch(_router).request(bet.timestamp, bet.url, bet.params, bet.keys, bet.condition);
   }
 
   function fulfillRequest(uint256 id, uint8 direction) public {
-    if (msg.sender != _router) revert("Only the oracle can close the bet");
-    if (_bets[id].timestamp < block.timestamp) revert("Bet has not ended yet");
-    if (direction == 0) revert("Invalid direction");
+    if (msg.sender != _router) revert BetSphereErrors.InvalidCaller();
+    if (_bets[id].verificationTimestamp < block.timestamp) revert BetSphereErrors.BetNotEnded();
+    if (direction == 0) revert BetSphereErrors.InvalidBetDirection();
     BetInfo storage bet = _bets[id];
     bet.result = direction;
     feeAmount += bet.total * _fees / 10000;
@@ -148,18 +157,18 @@ contract BetSphere is Ownable(msg.sender) {
   }
 
   function withdrawFees() public onlyOwner {
-    if (feeAmount == 0) revert("No fees to withdraw");
+    if (feeAmount == 0) revert BetSphereErrors.NoFeesToWithdraw();
     (bool success, ) = payable(feeRecipient).call{value: feeAmount}("");
-    if (!success) revert("Failed to withdraw fees");
+    if (!success) revert BetSphereErrors.FailedToWithdraw();
     feeAmount = 0;
   }
 
   function _withdrawCreatorFees(uint256 id) internal {
     BetInfo memory bet = _bets[id];
-    if (bet.total == 0) revert("No fees to withdraw");
+    if (bet.total == 0) revert BetSphereErrors.NoFeesToWithdraw();
     uint256 creatorFees = bet.total * _creatorFees / 10000;
     (bool success, ) = payable(bet.creator).call{value: creatorFees }("");
-    if (!success) revert("Failed to withdraw fees");
+    if (!success) revert BetSphereErrors.FailedToWithdraw();
   }
 
   // SETTER FUNCTIONS
@@ -237,7 +246,6 @@ contract BetSphere is Ownable(msg.sender) {
     return uint256(keccak256(abi.encodePacked(condition, url, maxDirection)));
   }
 
-  // panic array out-of-bounds access
   function _deleteActiveBetForUser(address user, uint256 betId) internal {
     uint256 index = _indexActiveBetsByUser[user][betId];
     uint256[] storage activeBets = _activeBetsByUser[msg.sender];
